@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.border.LineBorder;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class StartMenu extends JPanel implements ActionListener {
-	private JTextArea output;	//To output the instructions of how to play the game
+	private JTextArea output;					//To output the instructions of how to play the game
 	private JTextArea setPlyrs;
 	
 	private JPanel plyrPnl;						//Will hold btnPnl and choosePlyrs
@@ -31,7 +31,8 @@ public class StartMenu extends JPanel implements ActionListener {
 	
 	private ButtonGroup btns;					//To ensure only one amount of players is chosen
 	
-	private int numOfPlayers;
+	private int numOfPlayers;					//To keep track of the number of players
+	
 	/**
 	 * Create the panel.
 	 */
@@ -62,6 +63,7 @@ public class StartMenu extends JPanel implements ActionListener {
 	/**
 	 * Format the outputs. 
 	 * TODO: Format the output to look nice
+	 * @param output	JTextArea being formatted
 	 */
 	private void formatOutput(JTextArea output) {
 		output.setBackground(new Color(240, 240, 240));
@@ -116,20 +118,9 @@ public class StartMenu extends JPanel implements ActionListener {
 		}
 	}
 	
-	/**
-	 * Set Players
-	 */
-	public String[] setPlyrs() {
-		String[] names = new String[this.numOfPlayers];
-		setPlyrs.setText(null);
-		setPlyrs.setEditable(false);
-		for (int i = 0; i < this.numOfPlayers; i++) {
-			setPlyrs.append("Player " + i + ", what is your name? \n");
-			/**TODO: Take input from setPlyrs**/	
-			setPlyrs.append("\n");
-		}
-		
-		return names;
+	public JTextArea getHowToMenu() {
+		howToPlay();
+		return output;
 	}
 	
 	/**
@@ -149,8 +140,12 @@ public class StartMenu extends JPanel implements ActionListener {
 		setPlyrs.append("Please Choose a Number of Players\n");
 	}
 	
+	/**
+	 * Define actions according to radio buttons
+	 * @param e	Used to hold the action info
+	 */
 	public void actionPerformed(ActionEvent e) {
-		String btn = e.getActionCommand();
+		String btn = e.getActionCommand();			//TODO: Meet someone who needs comments to understand this section
 		if (btn == "Two Players") {
 			numOfPlayers = 2;
 		} else if (btn == "Three Players") {
@@ -160,10 +155,18 @@ public class StartMenu extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Used to determine current radio button selection regarding the number of players
+	 * @return	sends back the number of players
+	 */
 	public int getNumOfPlayers() {
 		return numOfPlayers;
 	}
 	
+	/**
+	 * Used to set number of players from GameWindow in case the current view is changed
+	 * @param num	The number of players being assigned
+	 */
 	public void setNumOfPlayers(int num) {
 		numOfPlayers = num;
 	}

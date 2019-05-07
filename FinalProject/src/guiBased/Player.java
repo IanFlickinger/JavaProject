@@ -8,4 +8,12 @@ public class Player {
 		this.name = name;
 		spot = 0;
 	}
+	
+	public void moveForward(int roll) {
+		this.spot = (spot + roll) % 12;
+	}
+	
+	public String getName() {
+		return name;
+	}
 }
