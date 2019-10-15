@@ -39,7 +39,7 @@ public class SetPlyrs extends JFrame {
 	public SetPlyrs(int num, ActionListener listener) {
 		this.num = num;
 		this.setLayout(new GridLayout(3, 1));
-		this.setBounds(250, 150, 300, 200);
+		this.setBounds(250, 150, 300, 250);
 		this.setVisible(true);
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);		//This frame is a pop-up. Closing this without proper course would disrupt the program
 		this.setResizable(false);								//Just doesn't look good
@@ -98,6 +98,8 @@ public class SetPlyrs extends JFrame {
 		for (int i = 0; i < num; i++) {
 			if (names[i].isBlank())
 				names[i] = "Player " + (i+1);
+			if (names[i].length() > 15)
+				names[i] = names[i].substring(0, 16);
 		}
 		
 		return names;									//Sends the names array back to the GameWindow

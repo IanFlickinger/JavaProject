@@ -5,10 +5,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,11 +26,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 
-public class GameWindow extends JFrame implements ActionListener {
+public class GameWindow extends JFrame implements ActionListener, MouseListener {
 
 	private JPanel contentPane;			//Main display of Frame
 	private JPanel startingPane;		//Displays startMenu
 	private JPanel gamePane;			//Displays game
+	private JPanel popup; 
 	
 	private JMenuBar menuBar;			//Holds optional actions throughout
 	
@@ -34,6 +39,11 @@ public class GameWindow extends JFrame implements ActionListener {
 	private JMenuItem mntmHowToPlay;	//Used to display instructions
 	private JMenuItem mntmQuit;			//Used to quit
 	private JMenuItem mntmBackToGame;
+	private JMenuItem mntmForwards;
+	private JMenuItem mntmBackwards;
+	private JMenuItem mntmEndTurn;
+	
+	private JMenuItem mntmDSA, mntmDSB, mntmDSC, mntmDSD;
 	
 	private JTextArea howToPlay;
 	
@@ -48,6 +58,33 @@ public class GameWindow extends JFrame implements ActionListener {
 	private Game game;					//Will be the game's gui 
 	
 	private LineBorder mntmBorder;		//Will be the border for each menu item
+	
+	private NewsItem item;
+	
+	public class NewsItem extends JPanel {
+		private Player player;
+		private String action;
+		private String effect;
+		private final Dimension size = new Dimension(190, 25);
+		
+		public NewsItem(Player player, String action, String effect) {
+			this.player = player;
+			this.action = action;
+			this.effect = effect;
+			setBorder(new LineBorder(Color.BLACK));
+			this.setPreferredSize(size);
+		}
+		
+		@Override 
+		public void paint(Graphics g) {
+			super.paintBorder(g);
+			player.getIcon().paintIcon(this, g, 2, 2);
+			g.setFont(new Font("Times New Roman", Font.BOLD, 12));
+			g.drawString(action, 30, 12);
+			g.setFont(new Font("Times New Roman", Font.PLAIN, 12));
+			g.drawString(effect, 30, 24);
+		}
+	};
 	
 	/**
 	 * Launch the application.
@@ -70,9 +107,10 @@ public class GameWindow extends JFrame implements ActionListener {
 	 * Create the frame.
 	 */
 	public GameWindow() {
+		setTitle("Monopoly Party");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 500, 300);
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setResizable(false);
 		startingPane = new JPanel();							//Create starting panel
 		startingPane.setBorder(new EmptyBorder(5, 5, 5, 5));		//Set an empty border with gaps of value 5
 		startingPane.setLayout(new BorderLayout(10, 10));			//Set layout as a Border Layout with gaps of value 10
@@ -134,6 +172,18 @@ public class GameWindow extends JFrame implements ActionListener {
 	}
 	
 	/**
+	 * 
+	 */
+	private void fmtPlyrMntm(JMenuItem mntm) {
+		Dimension menuSize = new Dimension(470/(game.getNumOfPlayers() + 1), 15);
+		Font menuFont = new Font("Segoe UI", Font.BOLD, 10);
+		
+		formatMntm(mntm);
+		mntm.setFont(menuFont);
+		mntm.setPreferredSize(menuSize);
+	}
+	
+	/**
 	 * Change the menu when the game begins
 	 */
 	private JMenuBar gameMenu() {
@@ -145,48 +195,64 @@ public class GameWindow extends JFrame implements ActionListener {
 		gameMenu.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 		gameMenu.setBackground(Color.WHITE);
 		
-		Dimension menuSize = new Dimension(470/(game.getNumOfPlayers() + 1), 15);
 		
-		Font menuFont = new Font("Segoe UI", Font.BOLD, 10);
 		mnPlayerOne = new JMenu(game.getName(0));				//Add player menus to define which player's turn it is, and what they can do
-		formatMntm(mnPlayerOne);
-		mnPlayerOne.setFont(menuFont);
-		mnPlayerOne.setPreferredSize(menuSize);
+		fmtPlyrMntm(mnPlayerOne);
 		gameMenu.add(mnPlayerOne);					//Set player menus as the first items on the menu bar
 		
 		mnPlayerTwo = new JMenu(game.getName(1));
-		formatMntm(mnPlayerTwo);
-		mnPlayerTwo.setFont(menuFont);
-		mnPlayerTwo.setPreferredSize(menuSize);
+		fmtPlyrMntm(mnPlayerTwo);
 		gameMenu.add(mnPlayerTwo);
 		
 		if (startMenu.getNumOfPlayers() > 2) {
 			mnPlayerThree = new JMenu(game.getName(2));
-			formatMntm(mnPlayerThree);
-			mnPlayerThree.setFont(menuFont);
-			mnPlayerThree.setPreferredSize(menuSize);
+			fmtPlyrMntm(mnPlayerThree);
 			gameMenu.add(mnPlayerThree);
 		};
 		
 		if (startMenu.getNumOfPlayers() > 3) {
 			mnPlayerFour = new JMenu(game.getName(3));
-			formatMntm(mnPlayerFour);
-			mnPlayerFour.setFont(menuFont);
-			mnPlayerFour.setPreferredSize(menuSize);
+			fmtPlyrMntm(mnPlayerFour);
 			gameMenu.add(mnPlayerFour);
 		};
 		
 		mnGameOptions = new JMenu("Game Options");
-		formatMntm(mnGameOptions);
-		mnGameOptions.setFont(menuFont);
-		mnGameOptions.setPreferredSize(menuSize);
+		fmtPlyrMntm(mnGameOptions);
 		
 		mntmBackToGame = new JMenuItem("Back To Game");
-		formatMntm(mntmBackToGame);
-		mntmBackToGame.setPreferredSize(menuSize);
+		fmtPlyrMntm(mntmBackToGame);
 		
-		mntmQuit.setPreferredSize(menuSize);
-		mntmHowToPlay.setPreferredSize(menuSize);
+		mntmDSA = new JMenuItem("Display Stats");
+		fmtPlyrMntm(mntmDSA);
+		mnPlayerOne.add(mntmDSA);
+		mntmDSB = new JMenuItem("Display Stats");
+		fmtPlyrMntm(mntmDSB);
+		mnPlayerTwo.add(mntmDSB);
+		if (game.getNumOfPlayers() > 2) {
+			mntmDSC = new JMenuItem("Display Stats");
+			fmtPlyrMntm(mntmDSC);
+			mnPlayerThree.add(mntmDSC);
+		}
+		if (game.getNumOfPlayers() > 3) {
+			mntmDSD = new JMenuItem("Display Stats");
+			fmtPlyrMntm(mntmDSD);
+			mnPlayerFour.add(mntmDSD);
+		}
+		
+		mntmForwards = new JMenuItem("Move Forwards");
+		mntmBackwards = new JMenuItem("Move Backwards");
+		fmtPlyrMntm(mntmForwards);
+		fmtPlyrMntm(mntmBackwards);
+		mnPlayerOne.add(mntmForwards);
+		mnPlayerOne.add(mntmBackwards);
+		
+		mntmEndTurn = new JMenuItem("End Turn");
+		fmtPlyrMntm(mntmEndTurn);
+		
+		mntmHowToPlay.removeActionListener(this);
+		mntmQuit.removeActionListener(this);
+		fmtPlyrMntm(mntmHowToPlay);
+		fmtPlyrMntm(mntmQuit);
 		mnGameOptions.add(mntmHowToPlay);
 		mnGameOptions.add(mntmQuit);
 		
@@ -242,6 +308,25 @@ public class GameWindow extends JFrame implements ActionListener {
 		quit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
+	private void updatePlayerMenus() {
+		if (game.getCurrentPlayer() == 0) {
+			mnPlayerOne.add(mntmForwards);
+			mnPlayerOne.add(mntmBackwards);
+		}
+		if (game.getCurrentPlayer() == 1) {
+			mnPlayerTwo.add(mntmForwards);
+			mnPlayerTwo.add(mntmBackwards);
+		}
+		if (game.getCurrentPlayer() == 2) {
+			mnPlayerThree.add(mntmForwards);
+			mnPlayerThree.add(mntmBackwards);
+		}
+		if (game.getCurrentPlayer() == 3) {
+			mnPlayerFour.add(mntmForwards);
+			mnPlayerFour.add(mntmBackwards);
+		}
+	}
+	
 	/**
 	 * Define actions
 	 */
@@ -279,6 +364,7 @@ public class GameWindow extends JFrame implements ActionListener {
 			menuBar = gameMenu();									//Update the menu bar
 			menuBar.revalidate();
 			
+			mnPlayerOne.setBackground(Color.GREEN);
 //			game.start();
 			
 			gamePane.add(menuBar, BorderLayout.NORTH);								//Add the new menu bar to the game panel
@@ -304,6 +390,7 @@ public class GameWindow extends JFrame implements ActionListener {
 				
 				howToPlay = startMenu.getHowToMenu();
 				gamePane.add(howToPlay, BorderLayout.CENTER);
+				gamePane.repaint();
 				gamePane.revalidate();
 			}
 			contentPane.revalidate();								//Refresh frame's content
@@ -320,11 +407,130 @@ public class GameWindow extends JFrame implements ActionListener {
 			gamePane.repaint();
 			contentPane.revalidate();
 		}
+		
+		/**
+		 * 
+		 */
+		else if (e.getActionCommand() == "Display Stats") {
+			if (e.getSource().equals(mntmDSA))
+				game.setDisplayedPlayer(0);
+			else if (e.getSource().equals(mntmDSB))
+				game.setDisplayedPlayer(1);
+			else if (e.getSource().equals(mntmDSC))
+				game.setDisplayedPlayer(2);
+			else if (e.getSource().equals(mntmDSD))
+				game.setDisplayedPlayer(3);
+		}
+		/**
+		 * 
+		 */
+		else if (e.getActionCommand().startsWith("Move")) {
+			boolean backwards;
+			backwards = false;
+			if (e.getActionCommand().endsWith("Backwards"))
+				backwards = true;
+			
+			game.roll(backwards);
+			
+			Player player = game.getPlayer(game.getCurrentPlayer());
+			String action = game.getAction(player.getSpot());
+			String effect = game.getEffect();
+			game.getNews().add(new NewsItem(player, action, effect), 0);
+			if (game.getNews().getComponentCount() > 5) game.getNews().remove(game.getNews().getComponent(5));
+			
+			mnPlayerOne.remove(mntmForwards);
+			mnPlayerOne.remove(mntmBackwards);
+			if (game.getCurrentPlayer() == 0) mnPlayerOne.add(mntmEndTurn);
+			mnPlayerTwo.remove(mntmForwards);
+			mnPlayerTwo.remove(mntmBackwards);
+			if (game.getCurrentPlayer() == 1) mnPlayerTwo.add(mntmEndTurn);
+			if (game.getNumOfPlayers() > 2) {
+				mnPlayerThree.remove(mntmForwards);
+				mnPlayerThree.remove(mntmBackwards);
+				if (game.getCurrentPlayer() == 2) mnPlayerThree.add(mntmEndTurn);
+			}
+			if (game.getNumOfPlayers() > 3) {
+				mnPlayerFour.remove(mntmForwards);
+				mnPlayerFour.remove(mntmBackwards);
+				if (game.getCurrentPlayer() == 3) mnPlayerFour.add(mntmEndTurn);
+			}
+			
+			game.revalidate();
+			revalidate();
+		}
+		/**
+		 * 
+		 */
+		else if (e.getActionCommand() == "End Turn") {
+			if (game.getCurrentPlayer() == 0)
+				mnPlayerOne.remove(mntmEndTurn);
+			if (game.getCurrentPlayer() == 1)
+				mnPlayerTwo.remove(mntmEndTurn);
+			if (game.getCurrentPlayer() == 2)
+				mnPlayerThree.remove(mntmEndTurn);
+			if (game.getCurrentPlayer() == 3)
+				mnPlayerFour.remove(mntmEndTurn);
+			game.nextPlayer();
+			updatePlayerMenus();
+		}
 		/**
 		 * Define "Quit" Action
 		 */
 		else if (e.getActionCommand() == "Quit") {
 			quit();
 		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {}
+
+	@Override
+	public void mousePressed(MouseEvent e) {}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		item = (NewsItem) e.getComponent();
+		System.out.println("Mouse Entered");
+		popup = new JPanel() {
+			@Override
+			public void paint(Graphics g) {
+				System.out.println("Painting");
+				g.setColor(Color.BLACK);
+				int[] xPoints = {
+						item.getX(), 
+						item.getX() + item.getWidth()/2 - item.getHeight()/2, 
+						item.getX() + item.getWidth()/2,
+						item.getX() + item.getWidth()/2 + item.getHeight()/2,
+						item.getX() + item.getWidth(),
+						item.getX() + item.getWidth(),
+						item.getX()
+				};
+				int[] yPoints = {
+						item.getY() + item.getHeight(), 
+						item.getY() + item.getHeight(),
+						item.getY() + item.getHeight()/2,
+						item.getY() + item.getHeight(),
+						item.getY() + item.getHeight(),
+						item.getY() + 100,
+						item.getY() + 100
+				};
+				g.fillRect(0, 0, 200, 200);
+				g.fillPolygon(xPoints, yPoints, 7);
+			}
+		};
+		add(popup, BorderLayout.CENTER);
+		popup.setVisible(true);
+		popup.setBounds(game.getNews().getBounds());
+		repaint();
+		revalidate();
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		remove(popup);
+		popup = null;
 	}
 }
